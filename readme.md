@@ -60,7 +60,7 @@ pyspark --packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3
 Short explanation of the --packages command:
 Comma-separated list of maven coordinates of jars to include on the driver and executor classpaths. Will search the local maven repo, then maven central and any additional remote repositories given by --repositories.
 
-# Spark commands with delatlake and s3
+# Spark commands with delta lake and s3
 spark.range(5).write.format("delta").save("s3a://<container>/<path_to_table>/<table_name>")
 
 
