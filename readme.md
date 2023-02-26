@@ -12,7 +12,7 @@
 
 
 # Tested on
-This docker file has only been tested on wsl but shoul deasily run on other linux distributions.
+This docker file has only been tested on wsl.
 
 # Requirements
 docker
