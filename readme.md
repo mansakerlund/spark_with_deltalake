@@ -6,7 +6,8 @@
  2. build docker image
  docker build .
  3. start container
- docker run -it <container> /bin/bash
+ docker run -it <image> /bin/bash
+
 
 
 
@@ -53,8 +54,13 @@ the truststore.
 ## Spark (Scala) + Deltalake + s3
 spark-shell --packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.2.0
 
-## Pyspark + Deltalake + s3 
-pyspark --packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.2.0
+## https://docs.delta.io/latest/releases.html
+
+## Pyspark + Deltalake + s3  
+pyspark --packages io.delta:delta-core_2.12:2.2.0,org.apache.hadoop:hadoop-aws:3.3.4
+
+taken from https://docs.delta.io/latest/quick-start.html#language-python
+pyspark --packages io.delta:delta-core_2.12:2.2.0,org.apache.hadoop:hadoop-aws:3.3.4 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"
 
 ## Packages command
 Short explanation of the --packages command:

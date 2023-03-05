@@ -1,13 +1,18 @@
 # https://pythonspeed.com/articles/alpine-docker-python/
-FROM python:3.9-alpine3.14
+FROM python:3.11-alpine
 
 # versions for a flexible install
 # it is important to select version that are copatible but unfortunately I have 
 # not found a good list for that other than
 # https://spark.apache.org/downloads.html
-ARG SPARK_VERSION=3.2.0
-ARG HADOOP_VERSION_SHORT=3.2
-ARG HADOOP_VERSION=3.2.2
+#ARG SPARK_VERSION=3.2.0
+#ARG HADOOP_VERSION_SHORT=3.2
+#ARG HADOOP_VERSION=3.2.2
+#ARG AWS_SDK_VERSION=1.11.375
+
+ARG SPARK_VERSION=3.3.2
+ARG HADOOP_VERSION_SHORT=3
+ARG HADOOP_VERSION=3.3.2
 ARG AWS_SDK_VERSION=1.11.375
 
 #RUN apt-get update && apt-get install -y tini
@@ -68,8 +73,15 @@ RUN  apk update \
   && rm -rf /var/cache/apk/*
 
 # Download and extract Spark
-RUN wget -qO- https://www-eu.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION_SHORT}.tgz | tar zx -C /opt && \
+#RUN wget -qO- https://www-eu.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION_SHORT}.tgz | tar zx -C /opt && \
+#    mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION_SHORT} /opt/spark
+
+
+
+RUN wget -qO- https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION_SHORT}.tgz | tar zx -C /opt && \
     mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION_SHORT} /opt/spark
+
+    
 
 # create a spark config file that contains the reference to the aws credentials resolver 
 # https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html
