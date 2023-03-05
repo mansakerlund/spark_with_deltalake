@@ -1,6 +1,8 @@
 # https://pythonspeed.com/articles/alpine-docker-python/
 FROM python:3.11-alpine
 
+
+WORKDIR /tmp
 # versions for a flexible install
 # it is important to select version that are copatible but unfortunately I have 
 # not found a good list for that other than
@@ -34,7 +36,6 @@ RUN ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2
 # "Find pyspark to make it importable.", whatever that means.....
 RUN pip install findspark
 
-
 # ca-certificates
 # https://askubuntu.com/questions/857476/what-is-the-use-purpose-of-the-ca-certificates-package
 
@@ -59,6 +60,9 @@ RUN pip install findspark
 # accessing linux system databases like password and group database
 # https://man7.org/linux/man-pages/man5/nss.5.html#DESCRIPTION
 
+
+# build-base + libffi-dev  requirements for jupyter
+
 # /var/cache
 # /var/cache is intended for cached data from applications. Such data is locally generated as a result of time-consuming I/O or calculation. The application must be able to regenerate or restore the data. Unlike /var/spool , the cached files can be deleted without data loss.
 # https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch05s05.html#:~:text=%2Fvar%2Fcache%20is%20intended%20for,be%20deleted%20without%20data%20loss.
@@ -70,8 +74,10 @@ RUN  apk update \
   && apk add --update coreutils && rm -rf /var/cache/apk/*   \ 
   && apk add --update openjdk11 tzdata curl unzip \
   && apk add --no-cache nss \
+  && apk add build-base \
+  && apk add libffi-dev \
   && rm -rf /var/cache/apk/*
-
+  
 # Download and extract Spark
 #RUN wget -qO- https://www-eu.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION_SHORT}.tgz | tar zx -C /opt && \
 #    mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION_SHORT} /opt/spark
@@ -85,21 +91,31 @@ RUN wget -qO- https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPAR
 
 # create a spark config file that contains the reference to the aws credentials resolver 
 # https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html
- RUN echo spark.hadoop.fs.s3a.aws.credentials.provider=com.amazonaws.auth.EnvironmentVariableCredentialsProvider > /opt/spark/conf/spark-defaults.conf
+RUN echo spark.hadoop.fs.s3a.aws.credentials.provider=com.amazonaws.auth.EnvironmentVariableCredentialsProvider > /opt/spark/conf/spark-defaults.conf
 
 # Add hadoop-aws and aws-sdk
 RUN wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${HADOOP_VERSION}/hadoop-aws-${HADOOP_VERSION}.jar -P /opt/spark/jars/ && \ 
     wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${AWS_SDK_VERSION}/aws-java-sdk-bundle-${AWS_SDK_VERSION}.jar -P /opt/spark/jars/
 
+
+
+#RUN pip install jupyter
+
 ENV PATH="/opt/spark/bin:${PATH}"
 ENV PYSPARK_PYTHON=python3
 ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.9-src.zip:${PYTHONPATH}"
+ENV PYSPARK_DRIVER_PYTHON=jupyter
+ENV PYSPARK_DRIVER_PYTHON_OPTS='notebook'
 # Define default command
 
 RUN mkdir $SPARK_HOME/conf
 RUN echo "SPARK_LOCAL_IP=127.0.0.1" > $SPARK_HOME/conf/spark-env.sh
 
+RUN addgroup -S spark && adduser -S spark -G spark
+USER spark
+
 #Copy python script for batch
 #COPY app.py /app/app.py
 # Define default command
+
 CMD ["/bin/bash"]
